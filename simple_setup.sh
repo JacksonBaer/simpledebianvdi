@@ -94,7 +94,7 @@ title = $VDI_TITLE
 icon=vdiicon.ico
 logo=vdilogo.png
 kiosk=false
-theme=DarkPurple1
+theme=LighBrown5
 
 [Authentication]
 auth_backend=$VDI_AUTH
