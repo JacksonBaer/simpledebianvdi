@@ -1,5 +1,4 @@
-Install Debian 11 Bullseye with user "vdiuser" , add a network mirror and ensure you unselect GNOME and select LXDE and SSH server
-once you are done installing, Login as the vdiuser
+Install Debian 11 Bullseye with user "vdiuser" , once you are done installing, Login as the vdiuser
 
 From the client press Ctrl+Alt+F1 and login to CLI from root
 
@@ -9,7 +8,7 @@ sudo usermod -aG sudo vdiuser
 nano /etc/apt/sources.list
     Comment out any "CDROM"
 
-apt install git -y
+apt install git ssh -y
 
 run ip a (to get your machines IP)
 
