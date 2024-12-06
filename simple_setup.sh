@@ -59,7 +59,7 @@ sudo apt update && sudo apt upgrade -y
 log_event "Installing required dependencies..."
 echo "$(date): Installing required dependencies..."
 
-sudo apt install python3-pip  virt-viewer lightdm lightdm-gtk-greeter -y
+sudo apt install python3-pip  virt-viewer lightdm zenity lightdm-gtk-greeter -y
 sudo apt install python3-tk -y
 # Install Python dependencies
 echo "Installing Python dependencies..."
