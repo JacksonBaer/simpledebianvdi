@@ -12,7 +12,7 @@ run ip a (to get your machines IP)
 
 ssh into the machine as vdiuser (ssh vdiuser@<ip>) and run
 
-git clone https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && chmod +x simple_setup.sh
+git clone https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && sudo chmod +x simple_setup.sh && sudo ./simple_setup.sh
 
 Computer will restart automatically
 
