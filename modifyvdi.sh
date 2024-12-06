@@ -28,12 +28,15 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Parse command-line arguments
+AUTO_RESTART=""
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --ip) PROXMOX_IP="$2"; shift ;;
         --title) VDI_TITLE="$2"; shift ;;
         --auth) VDI_AUTH="$2"; shift ;;
         --theme) VDI_THEME="$2"; shift ;;
+        -y) AUTO_RESTART="yes" ;;
+        -n) AUTO_RESTART="no" ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
@@ -41,7 +44,7 @@ done
 
 # Validate required inputs
 if [ -z "$PROXMOX_IP" ] || [ -z "$VDI_TITLE" ] || [ -z "$VDI_AUTH" ] || [ -z "$VDI_THEME" ]; then
-    echo "Usage: $0 --ip <Proxmox_IP> --title <Thin_Client_Title> --auth <pve|pam> --theme <theme_name>"
+    echo "Usage: $0 --ip <Proxmox_IP> --title <Thin_Client_Title> --auth <pve|pam> --theme <theme_name> [-y|-n]"
     log_event "Missing required arguments. Exiting."
     exit 1
 fi
@@ -78,13 +81,23 @@ EOL
 
 log_event "Configuration file created with theme: $VDI_THEME"
 
-# Prompt for system restart
-read -p "Configuration complete. Do you want to restart the system now? (y/n): " RESTART
-if [[ "$RESTART" =~ ^[Yy]$ ]]; then
+# Handle auto-restart logic
+if [ "$AUTO_RESTART" == "yes" ]; then
     echo "Restarting the system..."
-    log_event "System reboot initiated by user."
+    log_event "System reboot initiated via -y option."
     sudo reboot
+elif [ "$AUTO_RESTART" == "no" ]; then
+    echo "Restart skipped as per -n option."
+    log_event "System reboot skipped via -n option."
 else
-    echo "Please reboot the system manually to apply changes."
-    log_event "System reboot skipped by user."
+    # Interactive prompt if neither -y nor -n is provided
+    read -p "Configuration complete. Do you want to restart the system now? (y/n): " RESTART
+    if [[ "$RESTART" =~ ^[Yy]$ ]]; then
+        echo "Restarting the system..."
+        log_event "System reboot initiated interactively."
+        sudo reboot
+    else
+        echo "Please reboot the system manually to apply changes."
+        log_event "System reboot skipped interactively."
+    fi
 fi
