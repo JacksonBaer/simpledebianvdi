@@ -63,7 +63,7 @@ echo "ePy6JrMIatWENTlUbYnrNIleVGHIlEw4ZySqIB6ZI5kgRMlrdvm0VusMbA3XBiltcXi5ITsMIX
 log_event "Installing required dependencies..."
 echo "$(date): Installing required dependencies..."
 
-sudo apt install python3-pip  virt-viewer lxde lightdm lightdm-gtk-greeter -y
+sudo apt install python3-pip  virt-viewer lightdm lightdm-gtk-greeter -y
 sudo apt install python3-tk -y
 # Install Python dependencies
 echo "Installing Python dependencies..."
