@@ -1,0 +1,19 @@
+Install Debian with user "vdiuser" , add a network mirror and ensure you unselect GNOME and select LXDE and SSH server
+once you are done installing, you will need to log in at root and run
+
+sudo usermod -aG sudo vdiuser
+
+nano /etc/apt/source.list
+    Comment out any "CDROM"
+
+apt install git
+
+run ip a (to get your machines IP)
+
+ssh into the machine as vdiuser (ssh vdiuser@<ip>) and run
+
+git clone https://github.com/JacksonBaer/debianvdi.git && cd debianvdi/ && chmod +x simple_setup.sh
+
+sudo ./simple_setup.sh
+
+You are done :)
