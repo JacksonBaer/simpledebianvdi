@@ -189,7 +189,7 @@ wait_for_ip() {
     echo "Waiting for a valid IP address..."
     while true; do
         # Get the IP address assigned to the primary network interface (adjust 'eth0' if needed)
-        IP_ADDRESS=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+        IP_ADDRESS=$(ip -4 addr show enp1s0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
         
         # Check if an IP address was found
         if [ -n "$IP_ADDRESS" ]; then
