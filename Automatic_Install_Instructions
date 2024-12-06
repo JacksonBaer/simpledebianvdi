@@ -1,5 +1,8 @@
 Install Debian 11 Bulleye with user "vdiuser" , add a network mirror and ensure you unselect GNOME and select LXDE and SSH server
-once you are done installing, you will need to log in at root and run
+once you are done installing, Login as the vdiuser
+
+From the client press Ctrl+Alt+F1 and login to CLI from root
+
 
 sudo usermod -aG sudo vdiuser
 
