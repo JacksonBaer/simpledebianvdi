@@ -33,14 +33,15 @@ while [[ "$#" -gt 0 ]]; do
         --ip) PROXMOX_IP="$2"; shift ;;
         --title) VDI_TITLE="$2"; shift ;;
         --auth) VDI_AUTH="$2"; shift ;;
+        --theme) VDI_THEME="$2"; shift ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
     shift
 done
 
 # Validate required inputs
-if [ -z "$PROXMOX_IP" ] || [ -z "$VDI_TITLE" ] || [ -z "$VDI_AUTH" ]; then
-    echo "Usage: $0 --ip <Proxmox_IP> --title <Thin_Client_Title> --auth <pve|pam>"
+if [ -z "$PROXMOX_IP" ] || [ -z "$VDI_TITLE" ] || [ -z "$VDI_AUTH" ] || [ -z "$VDI_THEME" ]; then
+    echo "Usage: $0 --ip <Proxmox_IP> --title <Thin_Client_Title> --auth <pve|pam> --theme <theme_name>"
     log_event "Missing required arguments. Exiting."
     exit 1
 fi
@@ -53,7 +54,7 @@ if [[ "$VDI_AUTH" != "pve" && "$VDI_AUTH" != "pam" ]]; then
 fi
 
 # Log User Inputs
-log_event "Proxmox IP Address: $PROXMOX_IP, Thin Client Title: $VDI_TITLE, Authentication Method: $VDI_AUTH"
+log_event "Proxmox IP Address: $PROXMOX_IP, Thin Client Title: $VDI_TITLE, Authentication Method: $VDI_AUTH, Theme: $VDI_THEME"
 
 # Modify the configuration directory and file
 echo "Modifying configuration..."
@@ -65,6 +66,7 @@ title = $VDI_TITLE
 icon=vdiicon.ico
 logo=vdilogo.png
 kiosk=false
+theme=$VDI_THEME
 
 [Authentication]
 auth_backend=$VDI_AUTH
@@ -74,7 +76,7 @@ tls_verify=false
 $PROXMOX_IP=8006
 EOL
 
-log_event "Configuration file created."
+log_event "Configuration file created with theme: $VDI_THEME"
 
 # Prompt for system restart
 read -p "Configuration complete. Do you want to restart the system now? (y/n): " RESTART
