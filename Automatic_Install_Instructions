@@ -9,13 +9,19 @@ sudo usermod -aG sudo vdiuser
 nano /etc/apt/source.list
     Comment out any "CDROM"
 
-apt install git
+apt install git -y
 
 run ip a (to get your machines IP)
 
 ssh into the machine as vdiuser (ssh vdiuser@<ip>) and run
 
 sudo git clone https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && sudo chmod +x simple_setup.sh && sudo ./simple_setup.sh
+
+Enter proxmox ip
+Enter Proxmox Vdi Title
+Enter Proxmox Auth Method
+    PVE is a local user ex: User01
+    PAM is a linux user like the "root" account that is created to login to the server
 
 Computer will restart automatically
 
