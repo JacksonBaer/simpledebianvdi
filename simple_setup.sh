@@ -203,10 +203,10 @@ wait_for_ip() {
 }
 
 # Wait until an IP address is assigned
-wait_for_ip
-
 sleep 1
 /usr/bin/openbox --exit
+
+wait_for_ip
 
 # Navigate to the PVE-VDIClient directory
 cd ~/PVE-VDIClient
