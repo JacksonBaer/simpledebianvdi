@@ -186,20 +186,27 @@ cat <<'EOL' > /home/vdiuser/thinclient
 
 # Function to check if the system has a valid IP address
 wait_for_ip() {
-    echo "Waiting for a valid IP address..."
-    while true; do
-        # Get the IP address assigned to the primary network interface (adjust 'eth0' if needed)
-        IP_ADDRESS=$(ip -4 addr show enp1s0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-        
-        # Check if an IP address was found
-        if [ -n "$IP_ADDRESS" ]; then
-            echo "IP address obtained: $IP_ADDRESS"
-            break
-        fi
-        
-        # Wait for a short period before retrying
+    # Start a zenity info dialog in the background
+    (
+        echo "Waiting for a valid IP address..."
         sleep 2
-    done
+        while true; do
+            # Get the IP address assigned to the primary network interface (adjust 'eth0' if needed)
+            IP_ADDRESS=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+            
+            # Check if an IP address was found
+            if [ -n "$IP_ADDRESS" ]; then
+                echo "IP address obtained: $IP_ADDRESS"
+                break
+            fi
+            
+            # Wait for a short period before retrying
+            sleep 2
+        done
+    ) | zenity --progress --no-cancel --pulsate --text="Waiting for a valid IP address..." --title="Network Initialization"
+    
+    # Close the zenity dialog when done
+    zenity --info --text="IP address obtained: $IP_ADDRESS" --title="Network Ready" --timeout=3
 }
 
 # Wait until an IP address is assigned
