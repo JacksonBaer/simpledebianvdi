@@ -35,6 +35,7 @@ read -p "Enter the Proxmox IP or DNS name: " PROXMOX_IP
 # Prompt for the Thin Client Title
 read -p "Enter the Thin Client Title: " VDI_TITLE
 
+
 while true; do
     read -p "Enter authentication type (pve or pam): " VDI_AUTH
     if [ "$VDI_AUTH" == "pve" ] || [ "$VDI_AUTH" == "pam" ]; then
@@ -44,10 +45,14 @@ while true; do
         echo "Error: Invalid input. Please enter 'PVE' or 'PAM'."
     fi
 done
+ip a
+# Prompt for the Network Adapter (Wait For IP Script)
+read -p "Enter your Network Adapter " INET_ADAPTER
 
 log_event  "Proxmox IP/DNS entered: $PROXMOX_IP"
 log_event  "Thin Client Title entered: $VDI_TITLE"
 log_event "Authentication type selected: $VDI_AUTH"
+log_event "Authentication type selected: $INET_ADAPTER"
 
 # Update and upgrade system
 echo "Updating and upgrading system packages"
@@ -192,7 +197,7 @@ wait_for_ip() {
     (
         while true; do
             # Get the IP address assigned to the primary network interface (adjust 'eth0' if needed)
-            IP_ADDRESS=$(ip -4 addr show enp1s0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+            IP_ADDRESS=$(ip -4 addr show $INET_ADAPTER | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
             
             # Check if an IP address was found
             if [ -n "$IP_ADDRESS" ]; then
