@@ -54,11 +54,11 @@ log_event  "Thin Client Title entered: $VDI_TITLE"
 log_event "Authentication type selected: $VDI_AUTH"
 log_event "Authentication type selected: $INET_ADAPTER"
 
-# Update and upgrade system
-# echo "Updating and upgrading system packages"
-# log_event "Updating and upgrading system packages"
-# echo "Updating and upgrading system..."
-# sudo apt update && sudo apt upgrade -y
+Update and upgrade system
+echo "Updating and upgrading system packages"
+log_event "Updating and upgrading system packages"
+echo "Updating and upgrading system..."
+sudo apt update && sudo apt upgrade -y
 
 # Install required packages
 log_event "Installing required dependencies..."
@@ -139,12 +139,6 @@ chmod +x ~/thinclient
 
 # Define the username
 USERNAME="vdiuser"
-
-# Check if running as root
-if [ "$(id -u)" -ne 0 ]; then
-  echo "Please run this script as root or with sudo."
-  exit 1
-fi
 
 # Add the user if they don't exist
 if ! id "$USERNAME" &>/dev/null; then
