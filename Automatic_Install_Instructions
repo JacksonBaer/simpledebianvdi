@@ -1,4 +1,8 @@
-Install Debian 11 Bullseye with user "vdiuser" , once you are done installing, Login as the vdiuser
+Install Debian 11 Bullseye with user "vdiuser" , set a root and user password you are able to remeber
+Unselect Desktop Envirement
+Unselect Gnome
+Select SSH Server and LXDE
+    LXDE is required for the client to become locked down later on.
 
 From the client press Ctrl+Alt+F1 and login to CLI from root
 
@@ -17,11 +21,20 @@ ssh into the machine as vdiuser (ssh vdiuser@<ip>) and run
 sudo git clone https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && sudo chmod +x simple_setup.sh && sudo ./simple_setup.sh
 
 Enter proxmox ip
+    Your proxmox instance must have a dns record for the connections to be made later on.
 Enter Proxmox Vdi Title
 Enter Proxmox Auth Method
     PVE is a local user ex: User01
     PAM is a linux user like the "root" account that is created to login to the server
+Enter your network interface
+    The "ip a" command is run before you are prompted, enter the interface that is displayed as being on your chosen network eg: Eth0, Ent33 Ent1s0
 
 Computer will restart automatically
 
-You are done :)
+Installation is Complete :)
+When the client comes back up, you will see a message on the screen showing it is waiting for a network connection
+Once that connection is made you will see the login screen for the vdi client. 
+
+Login with iether a PVE or PAM user account. and once logged in you will see all of the VMs or LXEs your account has access to.
+
+
