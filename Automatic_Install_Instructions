@@ -3,7 +3,7 @@ Unselect Desktop Envirement
 Unselect Gnome
 Select SSH Server and LXDE
     LXDE is required for the client to become locked down later on.
-
+Install Grub on your Prinary disk
 From the client press Ctrl+Alt+F1 and login to CLI from root
 
 
