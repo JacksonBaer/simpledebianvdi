@@ -55,10 +55,10 @@ log_event "Authentication type selected: $VDI_AUTH"
 log_event "Authentication type selected: $INET_ADAPTER"
 
 # Update and upgrade system
-echo "Updating and upgrading system packages"
-log_event "Updating and upgrading system packages"
-echo "Updating and upgrading system..."
-sudo apt update && sudo apt upgrade -y
+# echo "Updating and upgrading system packages"
+# log_event "Updating and upgrading system packages"
+# echo "Updating and upgrading system..."
+# sudo apt update && sudo apt upgrade -y
 
 # Install required packages
 log_event "Installing required dependencies..."
