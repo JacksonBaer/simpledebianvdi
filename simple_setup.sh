@@ -187,45 +187,110 @@ touch /home/vdiuser/thinclient
 cat <<'EOL' > /home/vdiuser/thinclient
 #!/bin/bash
 
+# Specify the network adapter to monitor
+INET_ADAPTER="enp1s0"
+
+# Establish Log File
+LOG_FILE="/home/vdiuser/log/client.log"
+
+log_event() {
+    echo "$(date) [$(hostname)] [User: $(whoami)]: $1" >> "$LOG_FILE"
+}
+
+# Ensure the log file exists
+if [ ! -f "$LOG_FILE" ]; then
+    touch "$LOG_FILE"
+    log_event "Log file created."
+fi
+
+log_event "Thin client setup script started."
+
 # Function to check if the system has a valid IP address
 wait_for_ip() {
-    echo "Waiting for a valid IP address..."
+    log_event "Waiting for a valid IP address on $INET_ADAPTER..."
+    echo "Waiting for a valid IP address on $INET_ADAPTER..."
 
     # Start a Zenity progress dialog in the background
     (
         while true; do
-            # Get the IP address assigned to the primary network interface (adjust 'eth0' if needed)
-            IP_ADDRESS=$(ip -4 addr show enp1s0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-            
+            # Get the IP address assigned to the specified network adapter
+            IP_ADDRESS=$(ip -4 addr show "$INET_ADAPTER" | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+
             # Check if an IP address was found
             if [ -n "$IP_ADDRESS" ]; then
                 echo "100"  # Send completion signal to Zenity
                 break
             fi
-            
+
             # Send a progress update to Zenity
             echo "50"  # Arbitrary progress to keep Zenity alive
             sleep 2
+            #log_event "Waiting for a valid IP address on $INET_ADAPTER..."
         done
-    ) | zenity --progress --no-cancel --pulsate --text="Waiting for a valid IP address..." --title="Network Initialization" --auto-close
+    ) | zenity --progress --no-cancel --pulsate --text="Waiting for a valid IP address on $INET_ADAPTER..." --title="Network Initialization" --auto-close
 
-    # Show a confirmation dialog when IP is obtained
+    log_event "IP address obtained: $IP_ADDRESS"
     zenity --info --text="IP address obtained: $IP_ADDRESS" --title="Network Ready" --timeout=3
+}
+
+# Function to check if the system has an active internet connection
+check_internet_connection() {
+    # Ping a reliable public server (Google DNS)
+    if ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
+        return 0  # Internet connection is active
+    else
+        # Terminate remote-viewer if running
+        if pgrep -x "remote-viewer" >/dev/null; then
+            log_event "Internet connection lost. Forcefully closing remote-viewer..."
+            pkill -9 -x "remote-viewer"
+        fi
+        return 1  # Internet connection is lost
+    fi
 }
 
 # Wait until an IP address is assigned
 sleep 1
-/usr/bin/openbox --exit
+#/usr/bin/openbox --exit
 
 wait_for_ip
 
-
 # Navigate to the PVE-VDIClient directory
-cd ~/PVE-VDIClient
+cd ~/PVE-VDIClient || { log_event "Failed to navigate to ~/PVE-VDIClient."; exit 1; }
+log_event "Navigated to ~/PVE-VDIClient."
 
 # Run loop for thin client to prevent user closure
 while true; do
-    /usr/bin/python3 ~/PVE-VDIClient/vdiclient.py
+    # Check if the internet connection is active
+    if ! check_internet_connection; then
+        log_event "Internet connection lost. Restarting IP check..."
+        wait_for_ip
+        continue  # Restart the main loop after restoring the connection
+    fi
+
+    # Check if both remote-viewer and vdiclient.py are running
+    if ! pgrep -x "remote-viewer" >/dev/null && ! pgrep -f "vdiclient.py" >/dev/null; then
+        log_event "Starting vdiclient.py..."
+        /usr/bin/python3 ~/PVE-VDIClient/vdiclient.py &
+        vdiclient_pid=$!
+
+        # Wait for vdiclient.py to exit
+        wait $vdiclient_pid
+        log_event "vdiclient.py exited. Checking if remote-viewer is still running..."
+
+        # Wait until remote-viewer also stops
+        while pgrep -x "remote-viewer" >/dev/null; do
+            #log_event "remote-viewer is still running. Waiting for it to close..."
+            check_internet_connection
+            sleep 2
+        done
+
+        log_event "Both vdiclient.py and remote-viewer have exited. Restarting..."
+    else
+        log_event "vdiclient.py or remote-viewer is still running. Waiting..."
+    fi
+
+    # Wait before checking again
+    sleep 2
 done
 EOL
 
