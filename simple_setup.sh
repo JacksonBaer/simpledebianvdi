@@ -5,6 +5,9 @@
 # Date: 27 Nov 2024
 #git clone https://github.com/JacksonBaer/debianvdi.git && cd debianvdi/ && chmod +x simple_setup.sh
 
+# Define the username
+USERNAME=$(whoami)
+
 #Establishes Log File
 LOG_FILE="/var/log/thinclient_setup.log"
 
@@ -49,6 +52,7 @@ ip a
 # Prompt for the Network Adapter (Wait For IP Script)
 read -p "Enter your Network Adapter " INET_ADAPTER
 
+log_event "Script Run as $USERNAME"
 log_event  "Proxmox IP/DNS entered: $PROXMOX_IP"
 log_event  "Thin Client Title entered: $VDI_TITLE"
 log_event "Authentication type selected: $VDI_AUTH"
@@ -137,16 +141,16 @@ EOL
 chmod +x ~/thinclient
 
 
-# Define the username
-USERNAME="vdiuser"
+# # Define the username
+# USERNAME="vdiuser"
 
-# Add the user if they don't exist
-if ! id "$USERNAME" &>/dev/null; then
-  echo "User $USERNAME does not exist. Creating user..."
-  adduser --gecos "" "$USERNAME"
-else
-  echo "User $USERNAME already exists."
-fi
+# # Add the user if they don't exist
+# if ! id "$USERNAME" &>/dev/null; then
+#   echo "User $USERNAME does not exist. Creating user..."
+#   adduser --gecos "" "$USERNAME"
+# else
+#   echo "User $USERNAME already exists."
+# fi
 
 # Configure autologin in LightDM
 LIGHTDM_CONF="/etc/lightdm/lightdm.conf"
