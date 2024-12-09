@@ -6,7 +6,7 @@
 #git clone https://github.com/JacksonBaer/debianvdi.git && cd debianvdi/ && chmod +x simple_setup.sh
 
 # Define the username
-USERNAME=$(whoami)
+USERNAME=vdiuser
 
 #Establishes Log File
 LOG_FILE="/var/log/thinclient_setup.log"
