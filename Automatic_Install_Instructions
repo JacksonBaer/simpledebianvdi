@@ -11,6 +11,17 @@ sudo usermod -aG sudo vdiuser
 nano /etc/apt/sources.list
     Comment out any "CDROM"
 
+Your Source list should have:
+
+deb http://deb.debian.org/debian/ bullseye main
+deb-src http://deb.debian.org/debian/ bullseye main
+deb http://security.debian.org/debian-security bullseye-security main
+deb-src http://security.debian.org/debian-security bullseye-security main
+deb http://deb.debian.org/debian/ bullseye-updates main
+deb-src http://deb.debian.org/debian/ bullseye-updates main
+
+
+apt-get update
 apt install git ssh -y
 
 run ip a (to get your machines IP)
