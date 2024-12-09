@@ -15,11 +15,11 @@ apt install git ssh -y
 
 run ip a (to get your machines IP)
 
-Switch back into your desktop view (Ctrl+Alt+F7
-)
+Switch back into your desktop view (Ctrl+Alt+F7)
+
 ssh into the machine as vdiuser (ssh vdiuser@<ip>) from your laptop
 
-sudo git clone https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && sudo chmod +x simple_setup.sh && sudo ./simple_setup.sh
+sudo git clone https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && sudo chmod +x simple_setup.sh && sudo chmod +x modifyvdi.sh && sudo ./simple_setup.sh
 
 Enter proxmox ip
     Your proxmox instance must have a dns record for the connections to be made later on.
