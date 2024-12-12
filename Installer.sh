@@ -20,6 +20,8 @@ fi
 SELECTED=0
 
 # Menu to select which script to run
+#Perform System Updates
+sudo apt update && sudo apt upgrade -y
 OPTION=$(dialog --title "Installer Menu" --menu "Choose a task to perform:" 15 50 4 \
 1 "Run Setup Script" \
 2 "Run Modify Script" \
