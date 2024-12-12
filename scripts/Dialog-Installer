@@ -1,0 +1,35 @@
+Install Debian 11.11 Bullseye LXDE with user "vdiuser" , set a root and user password you are able to remeber
+    LXDE is required for the client to become locked down later on.
+Add a network Mirror
+Install Grub on your Prinary disk
+Log into the desktop as vdiuser
+From the client press Ctrl+Alt+F1 and login to CLI from root
+
+
+sudo usermod -aG sudo vdiuser
+
+nano /etc/apt/sources.list
+    Comment out any "CDROM"
+
+Your Source list should have:
+
+deb http://deb.debian.org/debian/ bullseye main
+deb-src http://deb.debian.org/debian/ bullseye main
+deb http://security.debian.org/debian-security bullseye-security main
+deb-src http://security.debian.org/debian-security bullseye-security main
+deb http://deb.debian.org/debian/ bullseye-updates main
+deb-src http://deb.debian.org/debian/ bullseye-updates main
+
+If you need to add more to list restart your client
+
+
+apt-get update
+apt install git ssh -y
+
+run ip a (to get your machines IP)
+
+Switch back into your desktop view (Ctrl+Alt+F7)
+
+ssh into the machine as vdiuser (ssh vdiuser@<ip>) from your laptop
+
+sudo git clone -b testing https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && sudo chmod +x installer.sh  && sudo chmod +x setup.sh && sudo chmod +x modify.sh && sudo ./installer.sh
