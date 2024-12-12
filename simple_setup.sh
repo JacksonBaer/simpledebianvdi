@@ -1,100 +1,138 @@
 #!/bin/bash
-# Thin Client Setup
+
+# Thin Client Setup Script with Dialog
 # Compatible with Debian-based systems
 # Author: Jackson Baer
 # Date: 27 Nov 2024
-#git clone https://github.com/JacksonBaer/debianvdi.git && cd debianvdi/ && chmod +x simple_setup.sh
 
-# Define the username
-USERNAME=vdiuser
+# Check if dialog is installed
+if ! command -v dialog &> /dev/null
+then
+    echo "Dialog is not installed. Installing it now..."
+    sudo apt update && sudo apt install dialog -y
+    if ! command -v dialog &> /dev/null
+    then
+        echo "Failed to install dialog. Please install it manually."
+        exit 1
+    fi
+fi
 
-#Establishes Log File
+# Log file
 LOG_FILE="/var/log/thinclient_setup.log"
+INSTALL_LOG="/tmp/thinclient_install.log"
 
 log_event() {
-    echo "$(date) [$(hostname)] [User: $(whoami)]: $1" >> /var/log/thinclient_setup.log
+    TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "$TIMESTAMP [$(hostname)] [User: $(whoami)]: $1" >> "$LOG_FILE"
+    echo "$TIMESTAMP: $1" >> "$INSTALL_LOG"
 }
-
 
 # Ensure the log file exists
 if [ ! -f "$LOG_FILE" ]; then
     touch "$LOG_FILE"
-     log_event "Log file created."
+    log_event "Log file created."
 fi
+
+> "$INSTALL_LOG"  # Clear install log
 
 log_event "Starting Thin Client Setup script"
 
-
 # Ensure the script is run as root
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"
-  log_event "User ID is $EUID. Exiting if not root."
+  dialog --title "Error" --msgbox "Please run this script as root." 10 50
+  log_event "User ID is $EUID. Exiting as not root."
   exit
 fi
 
+# Function to run commands with logging and progress bar
+gauge_command() {
+    local CMD="$1"
+    local MSG="$2"
+    log_event "Running: $CMD"
+    (bash -c "$CMD" >> "$INSTALL_LOG" 2>&1) &
+    local CMD_PID=$!
+    { while ps -p $CMD_PID > /dev/null; do
+        echo -n "# $MSG..."
+        sleep 1
+      done
+    } | dialog --title "Progress" --gauge "$MSG" 10 70 0
+    wait $CMD_PID
+    if [ $? -ne 0 ]; then
+        log_event "Command failed: $CMD"
+        dialog --title "Error" --msgbox "An error occurred while running: $CMD. Check logs for details." 10 50
+        exit 1
+    fi
+}
+
 # Prompt for the Proxmox IP or DNS name
-read -p "Enter the Proxmox IP or DNS name: " PROXMOX_IP
+PROXMOX_IP=$(dialog --title "Proxmox IP or DNS" --inputbox "Enter the Proxmox IP or DNS name:" 10 50 3>&1 1>&2 2>&3 3>&-)
+if [ $? -ne 0 ]; then
+  log_event "User canceled input for Proxmox IP or DNS. Exiting script."
+  dialog --title "Exit" --msgbox "You canceled the input. Exiting script." 10 50
+  exit 1
+fi
 
 # Prompt for the Thin Client Title
-read -p "Enter the Thin Client Title: " VDI_TITLE
+VDI_TITLE=$(dialog --title "Thin Client Title" --inputbox "Enter the Thin Client Title:" 10 50 3>&1 1>&2 2>&3 3>&-)
+if [ $? -ne 0 ]; then
+  log_event "User canceled input for Thin Client Title. Exiting script."
+  dialog --title "Exit" --msgbox "You canceled the input. Exiting script." 10 50
+  exit 1
+fi
 
+# Prompt for the Authentication Type
+VDI_AUTH=$(dialog --title "Authentication Type" --menu "Choose authentication type:" 15 50 2 \
+"pve" "Proxmox Virtual Environment" \
+"pam" "Pluggable Authentication Module" 3>&1 1>&2 2>&3 3>&-)
+if [ $? -ne 0 ]; then
+  log_event "User canceled input for Authentication Type. Exiting script."
+  dialog --title "Exit" --msgbox "You canceled the input. Exiting script." 10 50
+  exit 1
+fi
 
-while true; do
-    read -p "Enter authentication type (pve or pam): " VDI_AUTH
-    if [ "$VDI_AUTH" == "pve" ] || [ "$VDI_AUTH" == "pam" ]; then
-        echo "You selected $VDI_AUTH authentication."
-        break  # Exit the loop when a valid input is provided
-    else
-        echo "Error: Invalid input. Please enter 'PVE' or 'PAM'."
-    fi
-done
-ip a
-# Prompt for the Network Adapter (Wait For IP Script)
-read -p "Enter your Network Adapter " INET_ADAPTER
-
-log_event "Script Run as $USERNAME"
-log_event  "Proxmox IP/DNS entered: $PROXMOX_IP"
-log_event  "Thin Client Title entered: $VDI_TITLE"
 log_event "Authentication type selected: $VDI_AUTH"
-log_event "Authentication type selected: $INET_ADAPTER"
 
-Update and upgrade system
-echo "Updating and upgrading system packages"
-log_event "Updating and upgrading system packages"
-echo "Updating and upgrading system..."
-sudo apt update && sudo apt upgrade -y
+# Display network interfaces for user selection
+AVAILABLE_INTERFACES=$(ip -o link show | awk -F': ' '{print $2}' | grep -v "lo")
+INET_ADAPTER=$(dialog --title "Network Adapter" --menu "Select your Network Adapter:" 15 50 6 $(for iface in $AVAILABLE_INTERFACES; do echo "$iface $iface"; done) 3>&1 1>&2 2>&3 3>&-)
+if [ $? -ne 0 ]; then
+  log_event "User canceled input for Network Adapter. Exiting script."
+  dialog --title "Exit" --msgbox "You canceled the input. Exiting script." 10 50
+  exit 1
+fi
+
+log_event "Proxmox IP/DNS entered: $PROXMOX_IP"
+log_event "Thin Client Title entered: $VDI_TITLE"
+log_event "Network adapter selected: $INET_ADAPTER"
+
+# Update and upgrade system
+gauge_command "sudo apt update && sudo apt upgrade -y" "Updating and upgrading system packages"
 
 # Install required packages
-log_event "Installing required dependencies..."
-echo "$(date): Installing required dependencies..."
+gauge_command "sudo apt install python3-pip virt-viewer lightdm zenity lightdm-gtk-greeter -y" "Installing dependencies"
+gauge_command "sudo apt install python3-tk -y" "Installing Python 3 Tkinter"
+gauge_command "pip3 install proxmoxer 'PySimpleGUI<5.0.0'" "Installing Python packages"
 
-sudo apt install python3-pip  virt-viewer lightdm zenity lightdm-gtk-greeter -y
-sudo apt install python3-tk -y
-# Install Python dependencies
-echo "Installing Python dependencies..."
-pip3 install proxmoxer "PySimpleGUI<5.0.0"
+# Clone the repository
+log_event "Cloning PVE-VDIClient repository"
+if [ ! -d "/home/vdiuser" ]; then
+  log_event "User directory /home/vdiuser does not exist. Exiting script."
+  dialog --title "Error" --msgbox "User directory /home/vdiuser does not exist. Please create it before running the script." 10 50
+  exit 1
+fi
+gauge_command "cd /home/vdiuser && git clone https://github.com/joshpatten/PVE-VDIClient.git" "Cloning PVE-VDIClient repository"
+if [ ! -d "/home/vdiuser/PVE-VDIClient" ]; then
+  log_event "Failed to clone PVE-VDIClient repository. Exiting script."
+  dialog --title "Error" --msgbox "Failed to clone PVE-VDIClient repository. Check logs for details." 10 50
+  exit 1
+fi
 
-# Clone the repository and navigate into it
-echo "Cloning PVE-VDIClient repository..."
-log_event "Cloning PVE-VDIClient repository..."
-
-cd /home/vdiuser
-git clone https://github.com/joshpatten/PVE-VDIClient.git
-cd ./PVE-VDIClient || { echo "Failed to change directory to PVE-VDIClient"; exit 1; }
-
-# Make the script executable
-echo "Making vdiclient.py executable..."
-chmod +x vdiclient.py
-
-# Create the configuration directory and file
+# Configure VDI Client
+log_event "Configuring VDI Client"
 echo "Setting up configuration..."
-echo "Creating vdiclient configuration file"
-log_event "Creating vdiclient configuration file"
-
-sudo mkdir -p /etc/vdiclient
-sudo tee /etc/vdiclient/vdiclient.ini > /dev/null <<EOL
+mkdir -p /etc/vdiclient
+cat <<EOL | sudo tee /etc/vdiclient/vdiclient.ini > /dev/null
 [General]
-
 title = $VDI_TITLE
 icon=vdiicon.ico
 logo=vdilogo.png
@@ -110,85 +148,12 @@ tls_verify=false
 $PROXMOX_IP=8006
 EOL
 
-# Copy vdiclient.py to /usr/local/bin
-echo "Copying vdiclient.py to /usr/local/bin..."
-echo "$(date): Copying vdiclient.py to /usr/local/bin..." >> $LOG_FILE
-sudo cp vdiclient.py /usr/local/bin/vdiclient
-
-# Copy optional images
-# echo "Copying optional images..."
-# sudo cp vdiclient.png /etc/vdiclient/
-# sudo cp vdiicon.ico /etc/vdiclient/
-
-# Add the required line to the user's autostart file
-echo "@/usr/bin/bash /home/vdiuser/thinclient" > ~/.config/lxsession/LXDE/autostart
+log_event "Configuration file created successfully."
 
 # Create thin client script
-echo "Creating thinclient script..."
-touch ~/thinclient
-
-cat <<'EOL' > ~/thinclient
-#!/bin/bash
-# Navigate to the PVE-VDIClient directory
-cd ~/PVE-VDIClient
-# Run loop for thin client to prevent user closure
-while true; do
-    /usr/bin/python3 ~/PVE-VDIClient/vdiclient.py
-done
-EOL
-
-# Make thinclient script executable
-chmod +x ~/thinclient
-
-
-# # Define the username
-# USERNAME="vdiuser"
-
-# # Add the user if they don't exist
-# if ! id "$USERNAME" &>/dev/null; then
-#   echo "User $USERNAME does not exist. Creating user..."
-#   adduser --gecos "" "$USERNAME"
-# else
-#   echo "User $USERNAME already exists."
-# fi
-
-# Configure autologin in LightDM
-LIGHTDM_CONF="/etc/lightdm/lightdm.conf"
-
-echo "Configuring LightDM for autologin..."
-echo "$(date): Configuring LightDM autologin for $USERNAME" >> $LOG_FILE
-
-{
-  echo "[Seat:*]"
-  echo "autologin-user=$USERNAME"
-  echo "autologin-user-timeout=0"
-  echo "xserver-command=X -s 0 -dpms"
-
-  
-} >"$LIGHTDM_CONF"
-# Confirm changes
-if [ $? -eq 0 ]; then
-  echo "LightDM autologin configured successfully for $USERNAME."
-  log_event "$(date): Checking existence of user $USERNAME"
-
-else
-  echo "Failed to configure LightDM autologin."
-  exit 1
-fi
-
-# Add the required line to the user's autostart file
-echo "@/usr/bin/bash /home/vdiuser/thinclient" > /home/vdiuser/.config/lxsession/LXDE/autostart
-
-# Create thin client script
-echo "Creating thinclient script..."
 log_event "Creating thinclient script"
-touch /home/vdiuser/thinclient
-
-cat <<'EOL' > /home/vdiuser/thinclient
+cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
-
-# Specify the network adapter to monitor
-
 
 log_event "Thin client setup script started."
 
@@ -212,7 +177,6 @@ wait_for_ip() {
             # Send a progress update to Zenity
             echo "50"  # Arbitrary progress to keep Zenity alive
             sleep 2
-            #log_event "Waiting for a valid IP address on $INET_ADAPTER..."
         done
     ) | zenity --progress --no-cancel --pulsate --text="Waiting for a valid IP address on $INET_ADAPTER..." --title="Network Initialization" --auto-close
 
@@ -220,93 +184,57 @@ wait_for_ip() {
     zenity --info --text="IP address obtained: $IP_ADDRESS" --title="Network Ready" --timeout=3
 }
 
-# Function to check if the system has an active internet connection
-check_internet_connection() {
-    # Ping a reliable public server (Google DNS)
-    if ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
-        return 0  # Internet connection is active
-    else
-        # Terminate remote-viewer if running
-        if pgrep -x "remote-viewer" >/dev/null; then
-            log_event "Internet connection lost. Forcefully closing remote-viewer..."
-            pkill -9 -x "remote-viewer"
-        fi
-        return 1  # Internet connection is lost
-    fi
-}
-
-# Wait until an IP address is assigned
-sleep 1
-#/usr/bin/openbox --exit
-
+# Wait for IP address assignment
 wait_for_ip
 
 # Navigate to the PVE-VDIClient directory
 cd ~/PVE-VDIClient || { log_event "Failed to navigate to ~/PVE-VDIClient."; exit 1; }
 log_event "Navigated to ~/PVE-VDIClient."
 
-# Run loop for thin client to prevent user closure
+# Run loop for thin client
 while true; do
-    # Check if the internet connection is active
-    if ! check_internet_connection; then
-        log_event "Internet connection lost. Restarting IP check..."
-        wait_for_ip
-        continue  # Restart the main loop after restoring the connection
-    fi
-
-    # Check if both remote-viewer and vdiclient.py are running
-    if ! pgrep -x "remote-viewer" >/dev/null && ! pgrep -f "vdiclient.py" >/dev/null; then
+    # Start the VDI client if not already running
+    if ! pgrep -f "vdiclient.py" > /dev/null; then
         log_event "Starting vdiclient.py..."
         /usr/bin/python3 ~/PVE-VDIClient/vdiclient.py &
-        vdiclient_pid=$!
-
-        # Wait for vdiclient.py to exit
-        wait $vdiclient_pid
-        log_event "vdiclient.py exited. Checking if remote-viewer is still running..."
-
-        # Wait until remote-viewer also stops
-        while pgrep -x "remote-viewer" >/dev/null; do
-            #log_event "remote-viewer is still running. Waiting for it to close..."
-            check_internet_connection
-            sleep 2
-        done
-
-        log_event "Both vdiclient.py and remote-viewer have exited. Restarting..."
-    else
-        log_event "vdiclient.py or remote-viewer is still running. Waiting..."
     fi
 
-    # Wait before checking again
-    sleep 2
+    # Check for an active internet connection
+    if ! ping -c 1 -W 2 8.8.8.8 > /dev/null; then
+        log_event "Internet connection lost. Waiting to reconnect."
+        wait_for_ip
+    fi
+
+    sleep 5
+
 done
 EOL
-
 chmod +x /home/vdiuser/thinclient
+log_event "Thin client script created successfully."
 
+# Configure autostart for Thin Client
+log_event "Configuring autostart for Thin Client"
+mkdir -p /home/vdiuser/.config/lxsession/LXDE
+echo "@/usr/bin/bash /home/vdiuser/thinclient" > /home/vdiuser/.config/lxsession/LXDE/autostart
+log_event "Autostart configuration created successfully."
 
+# Configure LightDM
+log_event "Configuring LightDM for autologin"
+LIGHTDM_CONF="/etc/lightdm/lightdm.conf"
+echo "[Seat:*]
+autologin-user=vdiuser
+autologin-user-timeout=0
+xserver-command=X -s 0 -dpms" > "$LIGHTDM_CONF"
 
+log_event "LightDM configured successfully."
 
-# Make thinclient script executable
-log_event "Making ~/thinclient Bootable"
-chmod +x ~/thinclient
-#Restarting the client
-log_event "Rebooting System to Apply Changes"
-sudo reboot
-
-# # Restart client for changes to take effect
-# echo " If this is your initial installation of the VDI client, Please wait to restart the client"
-# echo " You will need to Cat the contents of the newly created "license.txt" file from the client device and manually open the vdiclient.py file and register the gui backend"
-# read -p "Configuration complete. Do you want to restart the system now? (y/n): " RESTART
-# if [[ "$RESTART" =~ ^[Yy]$ ]]; then
-#   echo "Restarting the system..."
-#   sudo reboot
-# else
-#   echo "Please reboot the system manually to apply changes."
-# fi
-# exit 0
-# echo "Setup complete! Reboot the system for changes to take effect."
-
-
-
-
-
+# Final message
+log_event "Setup complete. Asking for reboot confirmation."
+dialog --title "Setup Complete" --yesno "Setup complete! Do you want to reboot now?" 10 50
+if [ $? -eq 0 ]; then
+  log_event "User chose to reboot. Rebooting system."
+  sudo reboot
+else
+  log_event "User chose not to reboot. Exiting script."
+  dialog --title "Exit" --msgbox "You chose not to reboot. Please reboot manually later to apply changes." 10 50
+fi
