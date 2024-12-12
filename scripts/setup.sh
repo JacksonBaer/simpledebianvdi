@@ -68,7 +68,7 @@ if [ $? -ne 0 ]; then
 fi
 
 VDI_AUTH=$(dialog --title "Authentication Method" --menu "Choose Authentication Method:" 15 50 2 \
-"pve" "Proxmox Virtual Environment" \
+"pve" "Virtual Envirement Authentification" \
 "pam" "Pluggable Authentication Module" 3>&1 1>&2 2>&3)
 if [ $? -ne 0 ]; then
     log_event "User canceled input for Authentication Method. Exiting."
