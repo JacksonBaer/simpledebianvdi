@@ -188,20 +188,7 @@ cat <<'EOL' > /home/vdiuser/thinclient
 #!/bin/bash
 
 # Specify the network adapter to monitor
-INET_ADAPTER="enp1s0"
 
-# Establish Log File
-LOG_FILE="/home/vdiuser/log/client.log"
-
-log_event() {
-    echo "$(date) [$(hostname)] [User: $(whoami)]: $1" >> "$LOG_FILE"
-}
-
-# Ensure the log file exists
-if [ ! -f "$LOG_FILE" ]; then
-    touch "$LOG_FILE"
-    log_event "Log file created."
-fi
 
 log_event "Thin client setup script started."
 
