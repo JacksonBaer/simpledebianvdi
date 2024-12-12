@@ -150,29 +150,35 @@ log_event "Thin client setup script started."
 # Function to check if the system has a valid IP address
 wait_for_ip() {
     log_event "Waiting for a valid IP address on $INET_ADAPTER..."
-    echo "Waiting for a valid IP address on $INET_ADAPTER..."
-
+    
     # Start a Zenity progress dialog in the background
     (
         while true; do
             # Get the IP address assigned to the specified network adapter
-            IP_ADDRESS=$(ip -4 addr show "$INET_ADAPTER" | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
-
+            IP_ADDRESS=$(ip -4 addr show "$INET_ADAPTER" | grep -oP '(?<=inet\\s)\\d+(\\.\\d+){3}')
+            
             # Check if an IP address was found
             if [ -n "$IP_ADDRESS" ]; then
                 echo "100"  # Send completion signal to Zenity
                 break
             fi
-
+            
             # Send a progress update to Zenity
             echo "50"  # Arbitrary progress to keep Zenity alive
             sleep 2
         done
     ) | zenity --progress --no-cancel --pulsate --text="Waiting for a valid IP address on $INET_ADAPTER..." --title="Network Initialization" --auto-close
 
-    log_event "IP address obtained: $IP_ADDRESS"
-    zenity --info --text="IP address obtained: $IP_ADDRESS" --title="Network Ready" --timeout=3
+    if [ -n "$IP_ADDRESS" ]; then
+        log_event "IP address obtained: $IP_ADDRESS"
+        zenity --info --text="IP address obtained: $IP_ADDRESS" --title="Network Ready" --timeout=3
+    else
+        log_event "Failed to obtain an IP address."
+        zenity --error --text="Failed to obtain an IP address on $INET_ADAPTER. Check network settings." --title="Network Error"
+        exit 1
+    fi
 }
+
 
 # Wait for IP address assignment
 wait_for_ip
