@@ -75,6 +75,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+
 VDI_THEME=$(dialog --title "Theme" --menu "Choose a Theme:" 15 50 10 \
 "Black" "Black Theme" \
 "BlueMono" "Blue Mono Theme" \
