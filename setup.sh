@@ -131,24 +131,67 @@ if [ ! -d "/home/vdiuser/PVE-VDIClient" ]; then
   exit 1
 fi
 
-# Create the thinclient script
+# Create thin client script
 log_event "Creating thinclient script"
 cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
 
 log_event "Thin client setup script started."
 
+# Function to check if the system has a valid IP address
+wait_for_ip() {
+    log_event "Waiting for a valid IP address on $INET_ADAPTER..."
+    echo "Waiting for a valid IP address on $INET_ADAPTER..."
+
+    # Start a Zenity progress dialog in the background
+    (
+        while true; do
+            # Get the IP address assigned to the specified network adapter
+            IP_ADDRESS=$(ip -4 addr show "$INET_ADAPTER" | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+
+            # Check if an IP address was found
+            if [ -n "$IP_ADDRESS" ]; then
+                echo "100"  # Send completion signal to Zenity
+                break
+            fi
+
+            # Send a progress update to Zenity
+            echo "50"  # Arbitrary progress to keep Zenity alive
+            sleep 2
+        done
+    ) | zenity --progress --no-cancel --pulsate --text="Waiting for a valid IP address on $INET_ADAPTER..." --title="Network Initialization" --auto-close
+
+    log_event "IP address obtained: $IP_ADDRESS"
+    zenity --info --text="IP address obtained: $IP_ADDRESS" --title="Network Ready" --timeout=3
+}
+
+# Wait for IP address assignment
+wait_for_ip
+
 # Navigate to the PVE-VDIClient directory
 cd ~/PVE-VDIClient || { log_event "Failed to navigate to ~/PVE-VDIClient."; exit 1; }
+log_event "Navigated to ~/PVE-VDIClient."
 
 # Run loop for thin client
 while true; do
-    /usr/bin/python3 ~/PVE-VDIClient/vdiclient.py
-    sleep 2
+    # Start the VDI client if not already running
+    if ! pgrep -f "vdiclient.py" > /dev/null; then
+        log_event "Starting vdiclient.py..."
+        /usr/bin/python3 ~/PVE-VDIClient/vdiclient.py &
+    fi
+
+    # Check for an active internet connection
+    if ! ping -c 1 -W 2 8.8.8.8 > /dev/null; then
+        log_event "Internet connection lost. Waiting to reconnect."
+        wait_for_ip
+    fi
+
+    sleep 5
+
 done
 EOL
 chmod +x /home/vdiuser/thinclient
-log_event "Thinclient script created successfully."
+log_event "Thin client script created successfully."
 
 # Handle Auto-Restart Logic
 AUTO_RESTART=$(dialog --title "Restart Confirmation" --menu "Do you want to restart the system now?" 15 50 2 \
