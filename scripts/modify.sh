@@ -31,13 +31,14 @@ fi
 PROXMOX_IP=$(dialog --title "Proxmox IP Address" --inputbox "Enter the Proxmox IP Address:" 10 50 3>&1 1>&2 2>&3)
 if [ $? -ne 0 ]; then
     log_event "User canceled input for Proxmox IP Address. Exiting."
-    exit 1
+    exec /home/vdiuser/simpledebianvdi/Installer.sh
+    
 fi
 
 VDI_TITLE=$(dialog --title "Thin Client Title" --inputbox "Enter the Thin Client Title:" 10 50 3>&1 1>&2 2>&3)
 if [ $? -ne 0 ]; then
     log_event "User canceled input for Thin Client Title. Exiting."
-    exit 1
+    exec /home/vdiuser/simpledebianvdi/Installer.sh
 fi
 
 VDI_AUTH=$(dialog --title "Authentication Method" --menu "Choose Authentication Method:" 15 50 2 \
@@ -45,7 +46,7 @@ VDI_AUTH=$(dialog --title "Authentication Method" --menu "Choose Authentication 
 "pam" "Pluggable Authentication Module" 3>&1 1>&2 2>&3)
 if [ $? -ne 0 ]; then
     log_event "User canceled input for Authentication Method. Exiting."
-    exit 1
+    exec /home/vdiuser/simpledebianvdi/Installer.sh
 fi
 
 VDI_THEME=$(dialog --title "Theme" --menu "Choose a Theme:" 15 50 10 \
