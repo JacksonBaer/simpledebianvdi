@@ -145,6 +145,23 @@ log_event "Creating thinclient script"
 cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
 
+# Establish Log File
+LOG_FILE="/var/log/thinclient_setup.log"
+INSTALL_LOG="/tmp/thinclient_install.log"
+
+log_event() {
+    TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "$TIMESTAMP [$(hostname)] [User: $(whoami)]: $1" >> "$LOG_FILE"
+    echo "$TIMESTAMP: $1" >> "$INSTALL_LOG"
+}
+
+# Ensure the log file exists
+if [ ! -f "$LOG_FILE" ]; then
+    touch "$LOG_FILE"
+    log_event "Log file created."
+fi
+
+
 log_event "Thin client setup script started."
 
 # Function to check if the system has a valid IP address
