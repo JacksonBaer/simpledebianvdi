@@ -74,7 +74,14 @@ if [ $? -ne 0 ]; then
     log_event "User canceled input for Authentication Method. Exiting."
     exit 1
 fi
-
+# Prompt for Network Adapter
+AVAILABLE_INTERFACES=$(ip -o link show | awk -F': ' '{print $2}' | grep -v "lo")
+INET_ADAPTER=$(dialog --title "Network Adapter" --menu "Select your Network Adapter:" 15 50 6 $(for iface in $AVAILABLE_INTERFACES; do echo "$iface $iface"; done) 3>&1 1>&2 2>&3)
+if [ $? -ne 0 ]; then
+    log_event "User canceled input for Network Adapter. Exiting."
+    exit 1
+fi
+log_event "Network adapter selected: $INET_ADAPTER"
 
 VDI_THEME=$(dialog --title "Theme" --menu "Choose a Theme:" 15 50 10 \
 "Black" "Black Theme" \
