@@ -194,6 +194,22 @@ EOL
 chmod +x /home/vdiuser/thinclient
 log_event "Thin client script created successfully."
 
+# Configure autostart for Thin Client
+log_event "Configuring autostart for Thin Client"
+mkdir -p /home/vdiuser/.config/lxsession/LXDE
+echo "@/usr/bin/bash /home/vdiuser/thinclient" > /home/vdiuser/.config/lxsession/LXDE/autostart
+log_event "Autostart configuration created successfully."
+
+# Configure LightDM
+log_event "Configuring LightDM for autologin"
+LIGHTDM_CONF="/etc/lightdm/lightdm.conf"
+echo "[Seat:*]
+autologin-user=vdiuser
+autologin-user-timeout=0
+xserver-command=X -s 0 -dpms" > "$LIGHTDM_CONF"
+
+log_event "LightDM configured successfully."
+
 # Handle Auto-Restart Logic
 AUTO_RESTART=$(dialog --title "Restart Confirmation" --menu "Do you want to restart the system now?" 15 50 2 \
 "yes" "Restart now" \
