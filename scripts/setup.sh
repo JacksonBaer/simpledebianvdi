@@ -112,6 +112,7 @@ log_event "Proxmox IP Address: $PROXMOX_IP, Thin Client Title: $VDI_TITLE, Authe
 
 # Modify the configuration directory and file
 dialog --title "Modifying Configuration" --infobox "Updating configuration file..." 10 50
+mkdir -p /etc/vdiclient
 sudo tee /etc/vdiclient/vdiclient.ini > /dev/null <<EOL
 [General]
 
