@@ -58,11 +58,11 @@ esac
 
 # Run the corresponding script based on the SELECTED value
 if [ $SELECTED -eq 1 ]; then
-    exec /home/vdiuser/simpldebianvdi/scripts/setup.sh
+    exec /home/vdiuser/simpledebianvdi/scripts/setup.sh
 elif [ $SELECTED -eq 2 ]; then
-    exec /home/vdiuser/simpldebianvdi/scripts/modify.sh
+    exec /home/vdiuser/simpledebianvdi/scripts/modify.sh
 elif [ $SELECTED -eq 3 ]; then
-    exec /home/vdiuser/simpldebianvdi/scripts/service.sh
+    exec /home/vdiuser/simpledebianvdi/scripts/service.sh
 fi
 
 # Final message
