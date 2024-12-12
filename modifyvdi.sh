@@ -1,6 +1,6 @@
 #!/bin/bash
-# Modify Thin Client Ini Config
-# Compatible with Debian-based systems
+
+# Modify Thin Client Ini Config with Dialog
 # Author: Jackson Baer
 # Date: 27 Nov 2024
 
@@ -9,7 +9,7 @@ LOG_FILE="/var/log/thinclient_setup.log"
 
 # Create Log_Event Function for log functions
 log_event() {
-    echo "$(date): $1" >> /var/log/thinclient_setup.log
+    echo "$(date): $1" >> "$LOG_FILE"
 }
 
 # Ensure the log file exists
@@ -22,46 +22,61 @@ log_event "Starting Modify Thin Client script"
 
 # Ensure the script is run as root
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"
+  dialog --title "Error" --msgbox "Please run as root." 10 50
   log_event "User ID is $EUID. Exiting because script was not run as root."
   exit
 fi
 
-# Parse command-line arguments
-AUTO_RESTART=""
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
-        --ip) PROXMOX_IP="$2"; shift ;;
-        --title) VDI_TITLE="$2"; shift ;;
-        --auth) VDI_AUTH="$2"; shift ;;
-        --theme) VDI_THEME="$2"; shift ;;
-        -y) AUTO_RESTART="yes" ;;
-        -n) AUTO_RESTART="no" ;;
-        *) echo "Unknown parameter: $1"; exit 1 ;;
-    esac
-    shift
-done
-
-# Validate required inputs
-if [ -z "$PROXMOX_IP" ] || [ -z "$VDI_TITLE" ] || [ -z "$VDI_AUTH" ] || [ -z "$VDI_THEME" ]; then
-    echo "Usage: $0 --ip <Proxmox_IP> --title <Thin_Client_Title> --auth <pve|pam> --theme <theme_name> [-y|-n]"
-    log_event "Missing required arguments. Exiting."
+# Collect Inputs Using Dialog
+PROXMOX_IP=$(dialog --title "Proxmox IP Address" --inputbox "Enter the Proxmox IP Address:" 10 50 3>&1 1>&2 2>&3)
+if [ $? -ne 0 ]; then
+    log_event "User canceled input for Proxmox IP Address. Exiting."
     exit 1
 fi
 
-# Validate authentication method
-if [[ "$VDI_AUTH" != "pve" && "$VDI_AUTH" != "pam" ]]; then
-    echo "Error: Authentication method must be 'pve' or 'pam'."
-    log_event "Invalid authentication method provided: $VDI_AUTH"
+VDI_TITLE=$(dialog --title "Thin Client Title" --inputbox "Enter the Thin Client Title:" 10 50 3>&1 1>&2 2>&3)
+if [ $? -ne 0 ]; then
+    log_event "User canceled input for Thin Client Title. Exiting."
     exit 1
 fi
 
-# Log User Inputs
+VDI_AUTH=$(dialog --title "Authentication Method" --menu "Choose Authentication Method:" 15 50 2 \
+"pve" "Proxmox Virtual Environment" \
+"pam" "Pluggable Authentication Module" 3>&1 1>&2 2>&3)
+if [ $? -ne 0 ]; then
+    log_event "User canceled input for Authentication Method. Exiting."
+    exit 1
+fi
+
+VDI_THEME=$(dialog --title "Theme" --menu "Choose a Theme:" 15 50 10 \
+"Black" "Black Theme" \
+"BlueMono" "Blue Mono Theme" \
+"BluePurple" "Blue Purple Theme" \
+"BrightColors" "Bright Colors Theme" \
+"BrownBlue" "Brown Blue Theme" \
+"Dark" "Dark Theme" \
+"Dark2" "Dark Theme 2" \
+"DarkAmber" "Dark Amber Theme" \
+"DarkBlack" "Dark Black Theme" \
+"DarkBlue" "Dark Blue Theme" \
+"DarkGreen" "Dark Green Theme" \
+"LightBlue" "Light Blue Theme" \
+"LightGrey" "Light Grey Theme" \
+"Material1" "Material Theme 1" \
+"NeutralBlue" "Neutral Blue Theme" \
+"Purple" "Purple Theme" \
+"Reddit" "Reddit Theme" \
+"TanBlue" "Tan Blue Theme" \
+"TealMono" "Teal Mono Theme" 3>&1 1>&2 2>&3)
+if [ $? -ne 0 ]; then
+    log_event "User canceled input for Theme. Exiting."
+    exit 1
+fi
+
 log_event "Proxmox IP Address: $PROXMOX_IP, Thin Client Title: $VDI_TITLE, Authentication Method: $VDI_AUTH, Theme: $VDI_THEME"
 
 # Modify the configuration directory and file
-echo "Modifying configuration..."
-
+dialog --title "Modifying Configuration" --infobox "Updating configuration file..." 10 50
 sudo tee /etc/vdiclient/vdiclient.ini > /dev/null <<EOL
 [General]
 
@@ -79,25 +94,18 @@ tls_verify=false
 $PROXMOX_IP=8006
 EOL
 
-log_event "Configuration file created with theme: $VDI_THEME"
+log_event "Configuration file updated with theme: $VDI_THEME"
 
-# Handle auto-restart logic
+# Handle Auto-Restart Logic
+AUTO_RESTART=$(dialog --title "Restart Confirmation" --menu "Do you want to restart the system now?" 15 50 2 \
+"yes" "Restart now" \
+"no" "Restart later" 3>&1 1>&2 2>&3)
+
 if [ "$AUTO_RESTART" == "yes" ]; then
-    echo "Restarting the system..."
-    log_event "System reboot initiated via -y option."
+    dialog --title "Restarting" --infobox "Restarting the system..." 10 50
+    log_event "System reboot initiated via dialog."
     sudo reboot
 elif [ "$AUTO_RESTART" == "no" ]; then
-    echo "Restart skipped as per -n option."
-    log_event "System reboot skipped via -n option."
-else
-    # Interactive prompt if neither -y nor -n is provided
-    read -p "Configuration complete. Do you want to restart the system now? (y/n): " RESTART
-    if [[ "$RESTART" =~ ^[Yy]$ ]]; then
-        echo "Restarting the system..."
-        log_event "System reboot initiated interactively."
-        sudo reboot
-    else
-        echo "Please reboot the system manually to apply changes."
-        log_event "System reboot skipped interactively."
-    fi
+    dialog --title "Restart Skipped" --msgbox "Please reboot the system manually to apply changes." 10 50
+    log_event "System reboot skipped via dialog."
 fi
