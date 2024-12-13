@@ -5,8 +5,8 @@
 # Date: 27 Nov 2024
 
 # Establish Log File
-LOG_FILE="/var/log/thinclient_setup.log"
-INSTALL_LOG="/tmp/thinclient_install.log"
+LOG_FILE="/home/vdiuser/simpledebianvdi/logs/thinclient_setup.log"
+INSTALL_LOG="/home/vdiuser/simpledebianvdi/logs/thinclient_install.log"
 
 log_event() {
     TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
@@ -19,7 +19,10 @@ if [ ! -f "$LOG_FILE" ]; then
     touch "$LOG_FILE"
     log_event "Log file created."
 fi
-
+if [ ! -f "$INSTALL_LOG" ]; then
+    touch "$INSTALL_LOG"
+    log_event "Log file created."
+fi
 > "$INSTALL_LOG"  # Clear install log
 
 log_event "Starting Thin Client Setup script"
@@ -145,21 +148,7 @@ log_event "Creating thinclient script"
 cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
 
-# Establish Log File
-LOG_FILE="/var/log/thinclient_setup.log"
-INSTALL_LOG="/tmp/thinclient_install.log"
 
-log_event() {
-    TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "$TIMESTAMP [$(hostname)] [User: $(whoami)]: $1" >> "$LOG_FILE"
-    echo "$TIMESTAMP: $1" >> "$INSTALL_LOG"
-}
-
-# Ensure the log file exists
-if [ ! -f "$LOG_FILE" ]; then
-    touch "$LOG_FILE"
-    log_event "Log file created."
-fi
 
 
 log_event "Thin client setup script started."
@@ -168,34 +157,37 @@ log_event "Thin client setup script started."
 wait_for_ip() {
     log_event "Waiting for a valid IP address on $INET_ADAPTER..."
 
-    # Start a Zenity progress dialog in the background
-    (
-        while true; do
-            # Get the IP address assigned to the specified network adapter
-            IP_ADDRESS=$(ip -4 addr show "$INET_ADAPTER" | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+    while true; do
+        IP_ADDRESS=$(ip -4 addr show "$INET_ADAPTER" | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+        if [ -n "$IP_ADDRESS" ]; then
+            log_event "IP address obtained: $IP_ADDRESS"
+            break
+        fi
 
-            # Check if an IP address was found
-            if [ -n "$IP_ADDRESS" ]; then
-                echo "100"  # Send completion signal to Zenity
-                break
-            fi
+        log_event "No IP address found. Retrying..."
+        sleep 2
+    done
 
-            # Send a progress update to Zenity
-            echo "50"  # Arbitrary progress to keep Zenity alive
-            sleep 2
-        done
-    ) | zenity --progress --no-cancel --pulsate --text="Waiting for a valid IP address on $INET_ADAPTER..." --title="Network Initialization" --auto-close
-
-    if [ -n "$IP_ADDRESS" ]; then
-        log_event "IP address obtained: $IP_ADDRESS"
-        zenity --info --text="IP address obtained: $IP_ADDRESS" --title="Network Ready" --timeout=3
-    else
-        log_event "Failed to obtain an IP address."
+    if [ -z "$IP_ADDRESS" ]; then
+        log_event "Failed to obtain an IP address after retries."
         zenity --error --text="Failed to obtain an IP address on $INET_ADAPTER. Check network settings." --title="Network Error"
         exit 1
     fi
 }
 
+# Trap signals
+trap 'log_event "Script terminated."; exit' SIGINT SIGTERM
+
+# Wait for IP Address Assignment
+wait_for_ip
+
+# Navigate to the VDI Directory
+if cd "$VDI_DIR"; then
+    log_event "Navigated to $VDI_DIR."
+else
+    log_event "Failed to navigate to $VDI_DIR."
+    exit 1
+fi
 
 # Wait for IP address assignment
 wait_for_ip
