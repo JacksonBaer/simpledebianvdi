@@ -95,7 +95,7 @@ EOL
 
 # Configure thin client
 echo "Configuring thin client script..."
-cat <<EOL > /home/$USER/thinclient
+cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
 cd /home/$USER/PVE-VDIClient
 while true; do
