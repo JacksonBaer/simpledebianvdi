@@ -65,8 +65,8 @@ sudo apt update && sudo apt upgrade -y
 
 # Install required packages
 log_event "Installing required dependencies..."
-sudo apt install python3-pip virt-viewer lightdm zenity lightdm-gtk-greeter dialog openssh sshpass python3-tk -y
-
+sudo apt install virt-viewer lightdm zenity lightdm-gtk-greeter dialog openssh sshpass python3-tk -y
+sudo apt install python3-pip
 # Clone the repository and configure the thin client
 log_event "Cloning repository and configuring thin client"
 cd /home/vdiuser || exit
