@@ -70,7 +70,7 @@ sudo apt install python3-pip virt-viewer lightdm zenity lightdm-gtk-greeter dial
 
 # Clone the repository and configure the thin client
 log_event "Cloning repository and configuring thin client"
-cd /home/$USER || exit
+cd /home/vdiuser || exit
 git clone https://github.com/joshpatten/PVE-VDIClient.git
 cd PVE-VDIClient || { echo "Failed to navigate to PVE-VDIClient"; log_event "Failed to navigate to PVE-VDIClient"; exit 1; }
 
