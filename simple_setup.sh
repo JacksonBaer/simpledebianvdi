@@ -67,7 +67,9 @@ sudo apt update && sudo apt upgrade -y
 log_event "Installing required dependencies..."
 sudo apt install virt-viewer lightdm zenity lightdm-gtk-greeter dialog openssh sshpass python3-tk -y
 sudo apt install python3-pip -y
-pip3 install proxmoxer "PySimpleGUI<5.0.0"# Clone the repository and configure the thin client
+sudo apt install python3-tk -y
+pip3 install proxmoxer "PySimpleGUI<5.0.0"
+# Clone the repository and configure the thin client
 log_event "Cloning repository and configuring thin client"
 cd /home/vdiuser || exit
 git clone https://github.com/joshpatten/PVE-VDIClient.git
