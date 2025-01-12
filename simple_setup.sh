@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Function to display usage
 usage() {
     echo "Usage: $0 -i PROXMOX_IP -t VDI_TITLE -a AUTH_METHOD -n NETWORK_ADAPTER"
@@ -97,19 +96,19 @@ EOL
 echo "Configuring thin client script..."
 cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
-cd /home/$USER/PVE-VDIClient
+cd /home/vdiuser/PVE-VDIClient
 while true; do
     /usr/bin/python3 vdiclient.py
 done
 EOL
 
-chmod +x /home/$USER/thinclient
+chmod +x /home/vdiuser/thinclient
 
 # Configure LightDM for autologin
 echo "Configuring LightDM for autologin..."
 sudo tee /etc/lightdm/lightdm.conf > /dev/null <<EOL
 [Seat:*]
-autologin-user=$USER
+autologin-user=vdiuser
 autologin-user-timeout=0
 xserver-command=X -s 0 -dpms
 EOL
