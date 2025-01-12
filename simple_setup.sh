@@ -65,7 +65,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Install required packages
 log_event "Installing required dependencies..."
-sudo apt install virt-viewer lightdm zenity lightdm-gtk-greeter dialog openssh sshpass python3-tk -y
+sudo apt install virt-viewer lightdm zenity lightdm-gtk-greeter dialog sshpass python3-tk -y
 sudo apt install python3-pip -y
 sudo apt install python3-tk -y
 pip3 install proxmoxer "PySimpleGUI<5.0.0"
@@ -93,6 +93,9 @@ tls_verify = false
 [Hosts]
 $PROXMOX_IP=8006
 EOL
+
+# Add the required line to the user's autostart file
+echo "@/usr/bin/bash /home/vdiuser/thinclient" > ~/.config/lxsession/LXDE/autostart
 
 # Configure thin client
 echo "Configuring thin client script..."
