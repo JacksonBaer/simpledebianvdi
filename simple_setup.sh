@@ -102,8 +102,11 @@ log_event "'$cat /home/vdiuser/.config/lxsession/LXDE/autostart'"
 echo "Configuring thin client script..."
 cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
+sleep 1
+openbox --exit
 cd /home/vdiuser/PVE-VDIClient
 while true; do
+    
     /usr/bin/python3 vdiclient.py
 done
 EOL
