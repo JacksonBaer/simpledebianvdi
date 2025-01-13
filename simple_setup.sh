@@ -95,7 +95,7 @@ $PROXMOX_IP=8006
 EOL
 
 # Add the required line to the user's autostart file
-echo "@/usr/bin/bash /home/vdiuser/thinclient" > ~/.config/lxsession/LXDE/autostart
+echo '@/usr/bin/bash /home/vdiuser/thinclient" > ~/.config/lxsession/LXDE/autostart'
 
 # Configure thin client
 echo "Configuring thin client script..."
