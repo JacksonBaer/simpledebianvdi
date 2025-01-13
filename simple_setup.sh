@@ -119,5 +119,4 @@ xserver-command=X -s 0 -dpms
 EOL
 
 log_event "Thin Client setup completed successfully"
-echo "Setup completed successfully. Rebooting..."
-sudo reboot
+
