@@ -97,6 +97,7 @@ EOL
 # Add the required line to the user's autostart file
 echo "@/usr/bin/bash /home/vdiuser/thinclient" > ~/.config/lxsession/LXDE/autostart
 
+log_event "$cat ~/.config/lxsession/LXDE/autostart"
 # Configure thin client
 echo "Configuring thin client script..."
 cat <<EOL > /home/vdiuser/thinclient
