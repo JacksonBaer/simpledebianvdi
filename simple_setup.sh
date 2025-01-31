@@ -109,13 +109,18 @@ cd /home/vdiuser/PVE-VDIClient
 while true; do
     if grep -q "Lockdown" /home/vdiuser/status; then
         while grep -q "Lockdown" /home/vdiuser/status; do
-            zenity --error --text "This Terminal is Locked. Please contact your administrator for further assistance." --width=$(xdpyinfo | awk '/dimensions/{print $2}' | cut -d 'x' -f1) --height=$(xdpyinfo | awk '/dimensions/{print $2}' | cut -d 'x' -f2)
-            sleep 2  # Prevent excessive CPU usage
+            zenity --error --text "System is in lockdown mode. Please contact your administrator." \
+                --width=$(xdpyinfo | awk '/dimensions/{print $2}' | cut -d 'x' -f1) \
+                --height=$(xdpyinfo | awk '/dimensions/{print $2}' | cut -d 'x' -f2) &
+            ZENITY_PID=$!
+            while grep -q "Lockdown" /home/vdiuser/status; do
+                sleep 2  # Prevent excessive CPU usage
+            done
+            kill $ZENITY_PID
         done
     fi
     /usr/bin/python3 vdiclient.py
 done
-
 EOL
 cat <<EOL > /home/vdiuser/thinclient
 Clear
