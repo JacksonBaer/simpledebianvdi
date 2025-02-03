@@ -122,9 +122,7 @@ while true; do
     /usr/bin/python3 vdiclient.py
 done
 EOL
-cat <<EOL > /home/vdiuser/thinclient
-Clear
-EOL
+
 
 chmod +x /home/vdiuser/thinclient
 
