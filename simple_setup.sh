@@ -110,8 +110,8 @@ while true; do
     if grep -q "Lockdown" /home/vdiuser/status; then
         while grep -q "Lockdown" /home/vdiuser/status; do
             zenity --error --text "System is in lockdown mode. Please contact your administrator." \
-                --width=$(xdpyinfo | awk '/dimensions/{print $2}' | cut -d 'x' -f1) \
-                --height=$(xdpyinfo | awk '/dimensions/{print $2}' | cut -d 'x' -f2) &
+                --width= 400 \
+                --height= 400 &
             ZENITY_PID=$!
             while grep -q "Lockdown" /home/vdiuser/status; do
                 sleep 2  # Prevent excessive CPU usage
