@@ -47,6 +47,7 @@ log_event "Starting Thin Client Setup script"
 log_event "Proxmox IP: $PROXMOX_IP"
 log_event "VDI Title: $VDI_TITLE"
 log_event "Auth Method: $VDI_AUTH"
+log_event "Network Adapter: $INET_ADAPTER"
 
 # Ensure the script is run as root
 if [ "$EUID" -ne 0 ]; then
