@@ -1,12 +1,11 @@
 #!/bin/bash
 # Function to display usage
 usage() {
-    echo "Usage: $0 -i PROXMOX_IP -t VDI_TITLE -a AUTH_METHOD -n NETWORK_ADAPTER"
+    echo "Usage: $0 -i PROXMOX_IP -t VDI_TITLE -a AUTH_METHOD"
     echo "Options:"
     echo "  -i PROXMOX_IP         Proxmox IP or DNS"
     echo "  -t VDI_TITLE          Thin Client Title"
     echo "  -a AUTH_METHOD        Authentication method (pve or pam)"
-    echo "  -n NETWORK_ADAPTER    Network adapter (e.g., eth0, enp1s0)"
     exit 1
 }
 
@@ -16,7 +15,6 @@ while getopts ":i:t:a:n:" opt; do
         i) PROXMOX_IP=$OPTARG ;;
         t) VDI_TITLE=$OPTARG ;;
         a) VDI_AUTH=$OPTARG ;;
-        n) INET_ADAPTER=$OPTARG ;;
         *) usage ;;
     esac
 done
