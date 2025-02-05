@@ -10,7 +10,7 @@ usage() {
 }
 
 # Parse command-line arguments
-while getopts ":i:t:a:n:" opt; do
+while getopts ":i:t:a:" opt; do
     case $opt in
         i) PROXMOX_IP=$OPTARG ;;
         t) VDI_TITLE=$OPTARG ;;
@@ -20,7 +20,7 @@ while getopts ":i:t:a:n:" opt; do
 done
 
 # Validate arguments
-if [ -z "$PROXMOX_IP" ] || [ -z "$VDI_TITLE" ] || [ -z "$VDI_AUTH" ] || [ -z "$INET_ADAPTER" ]; then
+if [ -z "$PROXMOX_IP" ] || [ -z "$VDI_TITLE" ] || [ -z "$VDI_AUTH" ]; then
     echo "Missing required arguments."
     usage
 fi
@@ -47,7 +47,6 @@ log_event "Starting Thin Client Setup script"
 log_event "Proxmox IP: $PROXMOX_IP"
 log_event "VDI Title: $VDI_TITLE"
 log_event "Auth Method: $VDI_AUTH"
-log_event "Network Adapter: $INET_ADAPTER"
 
 # Ensure the script is run as root
 if [ "$EUID" -ne 0 ]; then
