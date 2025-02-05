@@ -47,7 +47,7 @@ log_event "Starting Thin Client Setup script"
 log_event "Proxmox IP: $PROXMOX_IP"
 log_event "VDI Title: $VDI_TITLE"
 log_event "Auth Method: $VDI_AUTH"
-log_event "Network Adapter: $INET_ADAPTER"
+
 
 # Ensure the script is run as root
 if [ "$EUID" -ne 0 ]; then
@@ -106,15 +106,16 @@ cd /home/vdiuser/PVE-VDIClient
 
 while true; do
     if grep -q "Lockdown" /home/vdiuser/status; then
+        pkill python
         while grep -q "Lockdown" /home/vdiuser/status; do
             zenity --error --text "System is in lockdown mode. Please contact your administrator." \
                 --width=400 \
                 --height=400 &
-            ZENITY_PID=$!
+            
             while grep -q "Lockdown" /home/vdiuser/status; do
                 sleep 2  # Prevent excessive CPU usage
             done
-            kill $ZENITY_PID
+            pkill zenity
         done
     fi
     /usr/bin/python3 vdiclient.py
