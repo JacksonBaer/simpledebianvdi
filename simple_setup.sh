@@ -66,12 +66,14 @@ log_event "Installing required dependencies..."
 sudo apt install virt-viewer lightdm zenity lightdm-gtk-greeter dialog sshpass python3-tk -y
 sudo apt install python3-pip -y
 sudo apt install python3-tk -y
-pip3 install proxmoxer "PySimpleGUI<5.0.0"
+pip3 install proxmoxer requests
 # Clone the repository and configure the thin client
 log_event "Cloning repository and configuring thin client"
 cd /home/vdiuser || exit
 git clone https://github.com/joshpatten/PVE-VDIClient.git
 cd PVE-VDIClient || { echo "Failed to navigate to PVE-VDIClient"; log_event "Failed to navigate to PVE-VDIClient"; exit 1; }
+sed -i '2s|.*|import FreeSimpleGUI as sg # pip install FreeSimpleGUI|' vdiclient.py
+
 
 chmod +x vdiclient.py
 sudo mkdir -p /etc/vdiclient
