@@ -66,7 +66,7 @@ log_event "Installing required dependencies..."
 sudo apt install virt-viewer lightdm zenity lightdm-gtk-greeter dialog sshpass python3-tk -y
 sudo apt install python3-pip -y
 sudo apt install python3-tk -y
-pip3 install proxmoxer requests
+pip3 install proxmoxer requests FreeSimpleGUI
 # Clone the repository and configure the thin client
 log_event "Cloning repository and configuring thin client"
 cd /home/vdiuser || exit
