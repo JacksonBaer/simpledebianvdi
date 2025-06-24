@@ -72,7 +72,7 @@ log_event "Cloning repository and configuring thin client"
 cd /home/vdiuser || exit
 git clone https://github.com/joshpatten/PVE-VDIClient.git
 cd PVE-VDIClient || { echo "Failed to navigate to PVE-VDIClient"; log_event "Failed to navigate to PVE-VDIClient"; exit 1; }
-sed -i '2s|.*|import FreeSimpleGUI as sg # pip install FreeSimpleGUI|' vdiclient.py
+sed -i '3s|.*|import FreeSimpleGUI as sg # pip install FreeSimpleGUI|' vdiclient.py
 
 
 chmod +x vdiclient.py
