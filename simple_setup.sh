@@ -126,7 +126,7 @@ EOL
 
 
 chmod +x /home/vdiuser/thinclient
-
+echo "Green" > /home/vdiuser/status
 # Configure LightDM for autologin
 echo "Configuring LightDM for autologin..."
 sudo tee /etc/lightdm/lightdm.conf > /dev/null <<EOL
