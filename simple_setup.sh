@@ -103,6 +103,7 @@ echo "Configuring thin client script..."
 cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
 sleep 1
+clear
 openbox --exit
 cd /home/vdiuser/PVE-VDIClient
 
