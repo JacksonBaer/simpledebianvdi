@@ -1,0 +1,83 @@
+#Modified thinclient script to request information from web server
+
+cat <<EOL > /home/vdiuser/thinclient
+#!/bin/bash
+sleep 1
+clear
+openbox --exit
+cd /home/vdiuser/PVE-VDIClient
+
+# --- Configuration Retrieval and Generation ---
+
+# 1. Define the URL for the configuration file
+CONFIG_URL="http://your.config.server/vdi_config.txt"
+
+# 2. Fetch the configuration file
+# Use 'curl' for fetching. The -s (silent) and -f (fail fast) flags are useful.
+# Save the fetched content to a temporary file.
+if ! curl -sf "\$CONFIG_URL" -o /tmp/vdi_config.tmp; then
+    # Handle failure: The script can either exit or launch the client with a default/old config.
+    # For critical configuration, exiting or showing an error is better.
+    zenity --error --text "Failed to retrieve configuration from \$CONFIG_URL. Check network and server." --width=400 --height=100
+    exit 1
+fi
+
+# 3. Read variables from the fetched file
+# Use 'source' or 'declare' to read the KEY=VALUE lines into shell variables.
+# 'set -a' exports variables so they can be used in the HEREDOC.
+set -a
+source /tmp/vdi_config.tmp 
+set +a
+
+# 4. Cleanup the temporary file
+rm -f /tmp/vdi_config.tmp
+
+# 5. Check if the required variables were set (minimal check)
+if [[ -z "\$PROXMOX_IP" || -z "\$VDI_TITLE" || -z "\$VDI_AUTH" ]]; then
+    zenity --error --text "Configuration file is missing required variables (PROXMOX_IP, VDI_TITLE, VDI_AUTH)." --width=400 --height=100
+    exit 1
+fi
+
+# 6. Generate the /etc/vdiclient/vdiclient.ini file
+# Note: Use 'sudo' if the vdiuser doesn't have permissions to write to /etc/vdiclient/
+# For a thin client, it's safer to have the setup script run this, 
+# but if it *must* be done here, 'sudo' might require a password or special setup (e.g., sudoers NOPASSWD).
+# Since you used 'sudo tee' in the original modification, I'll use a direct tee command here assuming
+# this script might be run with appropriate privileges or we'll drop the 'sudo' if running as 'vdiuser'.
+# Assuming the setup script that creates the thinclient file has run the initial 'sudo mkdir -p /etc/vdiclient'
+# and provided *vdiuser* write access, or you use a separate mechanism.
+# For simplicity, I'll use a local file and assume a mechanism moves it, or the script is run as root/sudo.
+
+sudo mkdir -p /etc/vdiclient
+sudo tee /etc/vdiclient/vdiclient.ini > /dev/null <<EOT
+[General]
+title = \$VDI_TITLE
+theme = \$VDI_THEME
+[Authentication]
+auth_backend = \$VDI_AUTH
+auth_totp = false
+tls_verify = false
+
+[Hosts]
+\$PROXMOX_IP=8006
+EOT
+
+# --- End Configuration Block ---
+
+while true; do
+    if grep -q "Lockdown" /home/vdiuser/status; then
+        pkill python
+        while grep -q "Lockdown" /home/vdiuser/status; do
+            zenity --error --text "System is in lockdown mode. Please contact your administrator." \
+                --width=400 \
+                --height=400 &
+            
+            while grep -q "Lockdown" /home/vdiuser/status; do
+                sleep 2    # Prevent excessive CPU usage
+            done
+            pkill zenity
+        done
+    fi
+    /usr/bin/python3 vdiclient.py
+done
+EOL
