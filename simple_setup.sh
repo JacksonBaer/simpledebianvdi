@@ -64,7 +64,7 @@ sudo apt update && sudo apt upgrade -y
 # Install required packages
 log_event "Installing required dependencies..."
 #Install Apt Packages:
-sudo apt install virt-viewer lightdm zenity lightdm-gtk-greeter dialog sshpass curl python3-tk -y
+sudo apt install virt-viewer lightdm zenity feh lightdm-gtk-greeter dialog sshpass curl python3-tk -y
 sudo apt install python3-pip -y
 sudo apt install python3-tk -y
 pip3 install proxmoxer requests FreeSimpleGUI
