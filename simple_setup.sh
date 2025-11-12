@@ -124,6 +124,7 @@ while true; do
             pkill zenity
         done
     fi
+    feh --bg-fill /home/vdiuser/simpledebianvdi/BG.png
     /usr/bin/python3 vdiclient.py
 done
 EOL
