@@ -112,6 +112,7 @@ cd /home/vdiuser/PVE-VDIClient
 while true; do
     if grep -q "Lockdown" /home/vdiuser/status; then
         pkill python
+        xsetroot -solid red
         while grep -q "Lockdown" /home/vdiuser/status; do
             zenity --error --text "System is in lockdown mode. Please contact your administrator." \
                 --width=400 \
