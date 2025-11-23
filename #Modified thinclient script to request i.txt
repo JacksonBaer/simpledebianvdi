@@ -1,5 +1,5 @@
 #Modified thinclient script to request information from web server
-
+apt install curl -y
 cat <<EOL > /home/vdiuser/thinclient
 #!/bin/bash
 sleep 1
@@ -47,6 +47,9 @@ fi
 # Assuming the setup script that creates the thinclient file has run the initial 'sudo mkdir -p /etc/vdiclient'
 # and provided *vdiuser* write access, or you use a separate mechanism.
 # For simplicity, I'll use a local file and assume a mechanism moves it, or the script is run as root/sudo.
+
+
+
 
 sudo mkdir -p /etc/vdiclient
 sudo tee /etc/vdiclient/vdiclient.ini > /dev/null <<EOT

@@ -26,7 +26,7 @@ if [ -z "$PROXMOX_IP" ] || [ -z "$VDI_TITLE" ] || [ -z "$VDI_AUTH" ]; then
 fi
 
 # Ensure valid authentication type
-if [[ "$VDI_AUTH" != "pve" && "$VDI_AUTH" != "pam" ]]; then
+if [[ "$VDI_AUTH" != "pve" && "$VDI_AUTH" != "pam"  ]]; then
     echo "Invalid authentication type. Must be 'pve' or 'pam'."
     usage
 fi
