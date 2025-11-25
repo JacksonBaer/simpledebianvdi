@@ -1,16 +1,20 @@
+Requirements:
+
 Install Debian 11.11 Bullseye LXDE with user "vdiuser" , set a root and user password you are able to remeber
-    LXDE is required for the client to become locked down later on.
+
+LXDE is required for the client to become locked down later on.
 Add a network Mirror
+
 Install Grub on your Prinary disk
+
+After Installation of OS
+
 Log into the desktop as vdiuser
+
 From the client press Ctrl+Alt+F1 and login to CLI from root
-
-
 sudo usermod -aG sudo vdiuser
-
 nano /etc/apt/sources.list
     Comment out any "CDROM"
-
 Your Source list should have:
 
 deb http://deb.debian.org/debian/ bullseye main
@@ -19,7 +23,6 @@ deb http://security.debian.org/debian-security bullseye-security main
 deb-src http://security.debian.org/debian-security bullseye-security main
 deb http://deb.debian.org/debian/ bullseye-updates main
 deb-src http://deb.debian.org/debian/ bullseye-updates main
-
 
 apt-get update
 apt install git ssh -y
@@ -30,23 +33,23 @@ Switch back into your desktop view (Ctrl+Alt+F7)
 
 ssh into the machine as vdiuser (ssh vdiuser@<ip>) from your laptop
 
-sudo git clone https://github.com/JacksonBaer/simpledebianvdi.git && cd simpledebianvdi/ && sudo chmod +x simple_setup.sh && sudo chmod +x modifyvdi.sh && sudo ./simple_setup.sh
+sudo git clone -b cli https://github.com/JacksonBaer/simpledebianvdi.git  && cd simpledebianvdi/ && sudo chmod +x simple_setup.sh
 
 Enter proxmox ip
     Your proxmox instance must have a dns record for the connections to be made later on.
 Enter Proxmox Vdi Title
 Enter Proxmox Auth Method
-    PVE is a local user ex: User01
-    PAM is a linux user like the "root" account that is created to login to the server
-Enter your network interface
-    The "ip a" command is run before you are prompted, enter the interface that is displayed as being on your chosen network eg: Eth0, Ent33 Ent1s0
 
-Computer will restart automatically
+    "pve" is a local user ex: User01
+    "pam" is a linux user like the "root" account that is created to login to the server
+    (Active Directory and LDAP are supported however, PVE or Pam is preffered Method due to limitations within the Proxmox API Modifications to the simple_setup.sh file can allow you to use custom realms)
+
+Computer will not restart automatically
 
 Installation is Complete :)
-When the client comes back up, you will see a message on the screen showing it is waiting for a network connection
-Once that connection is made you will see the login screen for the vdi client. 
 
-Login with iether a PVE or PAM user account. and once logged in you will see all of the VMs or LXEs your account has access to.
+When the client comes back up, you will see the login screen for the vdi client. 
+
+Login with the selected authentification realm. and once logged in you will see all of the VMs or LXEs your account has access to.
 
 
